@@ -1,0 +1,199 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+}
+
+/* ─────────────────────────────────────────
+   Base tokens
+───────────────────────────────────────── */
+:root {
+    --bg: #111916;
+    --panel: rgba(18, 28, 22, 0.55);
+    --panel-hover: rgba(18, 28, 22, 0.68);
+    --panel-selected: rgba(16, 38, 26, 0.65);
+    --panel-blur: blur(14px);
+    --border: rgba(255, 255, 255, 0.10);
+    --border-hover: rgba(255, 255, 255, 0.20);
+    --border-selected: rgba(52, 211, 153, 0.65);
+    --accent: #34d399;
+    --accent-glow: rgba(52, 211, 153, 0.22);
+    --accent-hover: #5af0b0;
+    --text: #f0f5f2;
+    --muted: rgba(240, 245, 242, 0.45);
+    --muted2: rgba(240, 245, 242, 0.65);
+    --check-fg: #000;
+    --pill-active-bg: rgba(52, 211, 153, 0.14);
+    --gradient-title: linear-gradient(135deg, #fff 10%, #34d399 100%);
+
+    /* tasks */
+    --task-bg: rgba(255, 255, 255, 0.04);
+    --hero-bg: linear-gradient(135deg, #0d2218 0%, #112a20 35%, #101e30 70%, #0a1222 100%);
+    --hero-fade: rgba(10, 16, 13, 0.60);
+    --done: #22c55e;
+    --urgent: #f87171;
+    --tasks-overlay: rgba(10, 16, 13, 0.62);
+    --card-solid: rgba(16, 26, 20, 0.72);
+    --card-solid-hover: rgba(18, 30, 22, 0.80);
+}
+
+/* ─────────────────────────────────────────
+   Sparkle theme
+───────────────────────────────────────── */
+.sparkle {
+    --bg: #160a0c;
+    --panel: rgba(30, 10, 13, 0.55);
+    --panel-hover: rgba(38, 12, 15, 0.68);
+    --panel-selected: rgba(55, 10, 13, 0.68);
+    --panel-blur: blur(16px);
+    --border: rgba(195, 28, 40, 0.22);
+    --border-hover: rgba(195, 28, 40, 0.45);
+    --border-selected: #c31c28;
+    --accent: #c31c28;
+    --accent-glow: rgba(195, 28, 40, 0.28);
+    --accent-hover: #e8313f;
+    --text: #f5e8d5;
+    --muted: rgba(245, 232, 213, 0.42);
+    --muted2: rgba(245, 232, 213, 0.65);
+    --check-fg: #f5e8d5;
+    --pill-active-bg: rgba(195, 28, 40, 0.18);
+    --gradient-title: linear-gradient(135deg, #f5e8d5 0%, #d4a84b 55%, #c31c28 100%);
+
+    /* tasks */
+    --task-bg: rgba(195, 28, 40, 0.06);
+    --hero-bg: linear-gradient(135deg, #280a0e 0%, #2e0a0e 35%, #260808 70%, #160405 100%);
+    --hero-fade: rgba(18, 5, 7, 0.60);
+    --done: #22c55e;
+    --urgent: #f87171;
+    --tasks-overlay: rgba(14, 4, 6, 0.64);
+    --card-solid: rgba(28, 8, 10, 0.75);
+    --card-solid-hover: rgba(36, 10, 13, 0.82);
+}
+
+/* ─────────────────────────────────────────
+   App Bar
+───────────────────────────────────────── */
+.app-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px 0 24px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+}
+
+.app-bar-logo {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted2);
+}
+
+.app-bar-right {
+    display: flex;
+    gap: 4px;
+}
+
+.theme-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted2);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.theme-btn:hover {
+    border-color: var(--border-hover);
+    color: var(--text);
+}
+
+.theme-btn.active {
+    border-color: var(--border-selected);
+    color: var(--text);
+    background: var(--panel);
+}
+
+.theme-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.theme-swatch.emerald {
+    background: #34d399;
+}
+
+.theme-swatch.crimson {
+    background: #c31c28;
+}
+
+.settings-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-hover);
+    background: var(--task-bg);
+    color: var(--muted2);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-left: 6px;
+}
+
+.settings-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--accent-glow);
+}
+
+#setupApp,
+#scheduleApp {
+    padding-top: calc(48px + 20px);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ─────────────────────────────────────────
+   Scrollbar
+───────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-hover);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}

@@ -1,0 +1,41 @@
+{
+  "name": "gacha-manager",
+  "productName": "gacha-manager",
+  "version": "0.1.0",
+  "description": "A task manager for gacha game dailies and resets",
+  "main": ".vite/build/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [],
+  "author": {
+    "name": "ricardomagid",
+    "email": "ricardomagid50@gmail.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.1",
+    "@electron-forge/maker-deb": "^7.11.1",
+    "@electron-forge/maker-rpm": "^7.11.1",
+    "@electron-forge/maker-squirrel": "^7.11.1",
+    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
+    "@electron-forge/plugin-fuses": "^7.11.1",
+    "@electron-forge/plugin-vite": "^7.11.1",
+    "@electron/fuses": "^1.8.0",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "electron": "40.4.1",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^8.2.0",
+    "vue": "^3.5.28"
+  }
+}
