@@ -1,0 +1,51 @@
+# GachaManager
+
+A desktop task manager built for people who play multiple gacha games at once. Tracks dailies, resets and deadlines across games and accounts so nothing expires while you're busy playing a different one.
+
+**Built with:** Electron + Vue 3 + Vite
+
+---
+
+## Project Status
+- **Current Version:** `v0.1.0` (Alpha)
+- **Status:** Active Development. Core logic is functional; game-specific task lists and event tracking are currently being populated.
+
+## Preview
+
+## Key Features
+
+- **Per-Game Task Tracking:** Real-time completion tracking with instant UI updates.
+- **Server-Aware Reset Timers:** UID prefix auto-detection handles region-specific resets (NA/EU/Asia).
+- **Multi-Account Support:** Seamlessly switch between main and alt accounts.
+- **Dynamic Themes:** Includes a default sleek dark mode and a specialized **HSR Sparkle** theme.
+- **Smart Cleanup:** Removing the last account for a game automatically cleans up your sidebar.
+
+## Roadmap
+- [ ] **Desktop Notifications:** Stay alerted before dailies expire.
+- [ ] **Process Monitoring:** Auto-detect if a game is running to auto-complete daily tasks.
+- [ ] **Event Calendar:** A visual timeline of banners and limited-time events.
+- [ ] **Expanded Library:** Support for additional games and themes.
+
+## Installation & Building
+
+> [!IMPORTANT]
+> **Asset Notice:** Official game assets are **not** included in the source code. While future pre-built releases will bundle these via fan-use licenses, building from source currently requires you to provide your own assets.
+
+```bash
+# Clone the repo
+git clone https://github.com/ricardomagid/GachaManager.git
+
+# Install dependencies
+npm install
+
+# Add game assets to src/renderer/assets/
+
+# Run or Build
+npm start
+npm run make
+```
+
+## Disclaimer
+GachaManager is an unofficial fan project and is not affiliated with or endorsed by HoYoverse (Cognosphere) or any other game developer.
+
+All game assets, characters and imagery are the property of their respective owners. This project is non-commercial and intended for personal use.
