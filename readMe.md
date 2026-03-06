@@ -12,13 +12,21 @@ A desktop task manager built for people who play multiple gacha games at once. T
 
 ## Preview
 **Setup**
+
 https://github.com/user-attachments/assets/30c66999-dad8-4234-bda5-3fdbedf5cf11
+
 **Tasks**
+
 https://github.com/user-attachments/assets/6aff6f0f-560d-4461-929d-a27e8823d253
+
 **Server Time**
+
 https://github.com/user-attachments/assets/20fe0a42-f62a-42ce-ad12-a9cd656ae6dc
+
 **Account Management**
+
 https://github.com/user-attachments/assets/b4fb7ae1-ec34-4e7b-9095-e7a8d2724ef7
+
 
 ## Key Features
 
