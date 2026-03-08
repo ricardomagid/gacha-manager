@@ -95,5 +95,5 @@ out/
 *.db
 
 # Game assets (official HoYoverse imagery, excluded for copyright and file size reasons)
-src/renderer/assets/games/
-src/renderer/assets/themes/
+src/assets/games/
+src/assets/themes/
