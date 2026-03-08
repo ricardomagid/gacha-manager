@@ -4,6 +4,7 @@ import { fetchTasksForAccount, fetchAccounts, fetchGamesWithoutAccounts, insertA
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
+import { Notification } from 'electron';
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
@@ -150,6 +151,21 @@ ipcMain.handle("saveSettings", (event, settings) => {
   }
 })
 
+ipcMain.handle('sendNotification', (event, {title, body}) => {
+  try {
+    const notification = new Notification({
+      title: title,
+      body: body,
+      silent: false
+    })
+
+    notification.show()
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
 // --- App Entry Point ---
 
 app.whenReady().then(() => {
@@ -157,6 +173,8 @@ app.whenReady().then(() => {
     const url = request.url.replace('app://', '');
     return net.fetch('file://' + path.join(__dirname, '../renderer/main_window', url).replace(/\\/g, '/'));
   });
+
+  app.setAppUserModelId(process.execPath);
 
   initDB();
   runMigrations();

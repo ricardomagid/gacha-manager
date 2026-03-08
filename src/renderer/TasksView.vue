@@ -39,7 +39,7 @@
                             <span class="account-server">{{ selectedAccount?.server }}</span>
                             <span class="account-uid" v-if="!editingUid" @click="startUidEdit">{{ selectedAccount?.uid
                                 || 0
-                            }}</span>
+                                }}</span>
                             <input class="account-uid account-uid-input" v-else type="text" v-model="editUidValue"
                                 @keyup.enter="commitUidEdit(selectedAccount.id)"
                                 @blur="commitAndCancelUidEdit(selectedAccount.id)" @keyup.escape="cancelUidEdit"
@@ -130,7 +130,7 @@ const MS_IN_HOUR = 1000 * 60 * 60
 const MS_IN_MIN = 1000 * 60
 
 import '../styles/tasks.css';
-import { ref, onMounted, watchEffect, watch, nextTick } from 'vue';
+import { ref, onMounted, computed, watchEffect, watch, nextTick } from 'vue';
 import { useNotification } from './composables/useNotification.js'
 import { useConfirm } from './composables/useConfirm.js'
 import { useSettings } from './composables/useSettings.js'
@@ -162,6 +162,7 @@ const showGamePicker = ref(false)
 const selectedGame = ref(null)
 const selectedAccount = ref(null)
 const failedImages = ref(new Set());
+const notifiedTaskIds = new Set()
 
 const editUidValue = ref('')
 const editingUid = ref(false)
@@ -170,6 +171,26 @@ const uidInput = ref(null)
 const editLabelValue = ref('')
 const editingLabelId = ref(null)
 const labelInput = ref(null)
+
+const isUrgent = (task) => {
+    return taskProgress(task) > 80
+}
+
+const taskProgress = (task) => Math.max(0, Math.floor(((task.duration - task.nextReset) / task.duration) * 100));
+
+const urgentTasks = computed(() =>
+    props.accountsPerGame.flatMap(game =>
+        game.accounts
+            .filter(account => (settings.value.windowsNotifications?.[game.id] ?? []).includes(account.id))
+            .flatMap(account =>
+                Object.values(account.tasks).flatMap(taskGroup =>
+                    taskGroup
+                        .filter(task => !task.isCompleted && isUrgent(task))
+                        .map(task => ({ game: game.name, task }))
+                )
+            )
+    )
+);
 
 watchEffect(() => {
     const games = props.accountsPerGame
@@ -200,6 +221,26 @@ watch(() => [selectedGame, selectedAccount], () => {
     cancelUidEdit()
 })
 
+watch(urgentTasks, (urgentEntries) => {
+    const newUrgent = urgentEntries.filter(({ task }) => !notifiedTaskIds.has(task.id))
+    if (newUrgent.length === 0) return;
+
+    newUrgent.forEach(({ task }) => notifiedTaskIds.add(task.id))
+
+    const gameList = new Set();
+    newUrgent.forEach(({ game }) => gameList.add(game));
+    const games = [...gameList].join(', ');
+
+    const body = newUrgent.length === 1
+        ? `There is 1 task approaching its deadline in ${games}`
+        : `There are ${newUrgent.length} tasks approaching their deadlines in ${games}`;
+
+    window.api.sendNotification({
+        title: 'Some tasks are approaching their deadline!',
+        body
+    });
+});
+
 const selectGame = (gameGroup) => {
     selectedGame.value = gameGroup
     selectedAccount.value = gameGroup.accounts[0]
@@ -213,12 +254,6 @@ const countdownFormat = (countdown) => {
     return daysLeft > 0 ? `${daysLeft}d ${hoursLeft}h` :
         hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` :
             `00:${String(minsLeft).padStart(2, '0')}`
-}
-
-const taskProgress = (task) => Math.max(0, Math.floor(((task.duration - task.nextReset) / task.duration) * 100));
-
-const isUrgent = (task) => {
-    return taskProgress(task) > 80
 }
 
 const getCompletionPercentage = (tasks) => {

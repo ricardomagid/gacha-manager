@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('api', {
     deleteLastTaskLog: (taskLogData) => ipcRenderer.invoke('deleteLastTaskLog', taskLogData),
     insertTaskLog: (taskLogData) => ipcRenderer.invoke('insertTaskLog', taskLogData),
     loadSettings: () => ipcRenderer.invoke('loadSettings'),
-    saveSettings: (settings) => ipcRenderer.invoke('saveSettings', settings)
+    saveSettings: (settings) => ipcRenderer.invoke('saveSettings', settings),
+    sendNotification: (notificatioNData) => ipcRenderer.invoke('sendNotification', notificatioNData)
 });
