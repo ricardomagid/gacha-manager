@@ -42,6 +42,42 @@
     cursor: pointer;
     border-left: 2px solid transparent;
     transition: background 0.15s, border-color 0.15s;
+    display: grid;
+    grid-template-areas:
+        "name  orb"
+        "count orb";
+    grid-template-columns: 1fr auto;
+    align-items: center;
+}
+
+.game-name { grid-area: name; }
+.game-count { grid-area: count; }
+
+.urgent-orb {
+    grid-area: orb;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--urgent);
+    box-shadow: 0 0 6px var(--urgent);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.urgent-orb::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: var(--urgent);
+    opacity: 0.25;
+    animation: orb-pulse 1.8s ease-out infinite;
+}
+
+@keyframes orb-pulse {
+    0%   { transform: scale(0.8); opacity: 0.35; }
+    60%  { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.2); opacity: 0; }
 }
 
 .game-item:hover {

@@ -10,6 +10,7 @@
                         {{ gameGroup.accounts.length }}
                         {{ gameGroup.accounts.length === 1 ? 'account' : 'accounts' }}
                     </p>
+                    <span v-if="hasUrgentTasks(gameGroup.name)" class="urgent-orb" />
                 </div>
             </div>
 
@@ -39,7 +40,7 @@
                             <span class="account-server">{{ selectedAccount?.server }}</span>
                             <span class="account-uid" v-if="!editingUid" @click="startUidEdit">{{ selectedAccount?.uid
                                 || 0
-                                }}</span>
+                            }}</span>
                             <input class="account-uid account-uid-input" v-else type="text" v-model="editUidValue"
                                 @keyup.enter="commitUidEdit(selectedAccount.id)"
                                 @blur="commitAndCancelUidEdit(selectedAccount.id)" @keyup.escape="cancelUidEdit"
@@ -181,16 +182,19 @@ const taskProgress = (task) => Math.max(0, Math.floor(((task.duration - task.nex
 const urgentTasks = computed(() =>
     props.accountsPerGame.flatMap(game =>
         game.accounts
-            .filter(account => (settings.value.windowsNotifications?.[game.id] ?? []).includes(account.id))
             .flatMap(account =>
                 Object.values(account.tasks).flatMap(taskGroup =>
                     taskGroup
                         .filter(task => !task.isCompleted && isUrgent(task))
-                        .map(task => ({ game: game.name, task }))
+                        .map(task => ({ game: game.name, task, toNotify: (settings.value.windowsNotifications?.[game.id] ?? []).includes(account.id) }))
                 )
             )
     )
 );
+
+const hasUrgentTasks = (gameName) => {
+    return urgentTasks.value.some(({game}) => game === gameName)
+}
 
 watchEffect(() => {
     const games = props.accountsPerGame
@@ -222,7 +226,7 @@ watch(() => [selectedGame, selectedAccount], () => {
 })
 
 watch(urgentTasks, (urgentEntries) => {
-    const newUrgent = urgentEntries.filter(({ task }) => !notifiedTaskIds.has(task.id))
+    const newUrgent = urgentEntries.filter(({ task, toNotify }) => !notifiedTaskIds.has(task.id) && toNotify)
     if (newUrgent.length === 0) return;
 
     newUrgent.forEach(({ task }) => notifiedTaskIds.add(task.id))
