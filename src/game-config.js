@@ -3,6 +3,7 @@ export const GAME_CONFIG = {
         current_version: 6.4,
         version_start: "2025-02-25",
         version_duration_days: 42,
+        process: "GenshinImpact.exe"
     },
     "Honkai: Star Rail": {
         current_version: 4.0,
@@ -16,11 +17,13 @@ export const GAME_CONFIG = {
             "Memory of Chaos": "2026-01-19T00:00:00Z",
             "Pure Fiction": "2026-02-16T00:00:00Z",
             "Apocalyptic Shadow": "2026-02-02T00:00:00Z"
-        }
+        },
+        process: "StarRail.exe"
     },
     "Zenless Zone Zero": {
         current_version: 2.6,
         version_start: "2025-02-06",
         version_duration_days: 42,
+        process: "ZenlessZoneZero.exe"
     }
 }

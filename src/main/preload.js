@@ -10,5 +10,7 @@ contextBridge.exposeInMainWorld('api', {
     insertTaskLog: (taskLogData) => ipcRenderer.invoke('insertTaskLog', taskLogData),
     loadSettings: () => ipcRenderer.invoke('loadSettings'),
     saveSettings: (settings) => ipcRenderer.invoke('saveSettings', settings),
-    sendNotification: (notificatioNData) => ipcRenderer.invoke('sendNotification', notificatioNData)
+    sendNotification: (notificatioNData) => ipcRenderer.invoke('sendNotification', notificatioNData),
+    on: (channel, callback) => ipcRenderer.on(channel, callback),
+    removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)
 });

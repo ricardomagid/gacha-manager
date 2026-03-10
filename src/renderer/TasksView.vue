@@ -131,7 +131,7 @@ const MS_IN_HOUR = 1000 * 60 * 60
 const MS_IN_MIN = 1000 * 60
 
 import '../styles/tasks.css';
-import { ref, onMounted, computed, watchEffect, watch, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watchEffect, watch, nextTick } from 'vue';
 import { useNotification } from './composables/useNotification.js'
 import { useConfirm } from './composables/useConfirm.js'
 import { useSettings } from './composables/useSettings.js'
@@ -193,7 +193,7 @@ const urgentTasks = computed(() =>
 );
 
 const hasUrgentTasks = (gameName) => {
-    return urgentTasks.value.some(({game}) => game === gameName)
+    return urgentTasks.value.some(({ game }) => game === gameName)
 }
 
 watchEffect(() => {
@@ -205,12 +205,12 @@ watchEffect(() => {
     }
 })
 
-watch(() => props.accountsPerGame, async (newAccountPerGame) => {
+watch(() => props.accountsPerGame, async (newAccountsPerGame) => {
     missingGames.value = await window.api.getGamesWithoutAccounts()
     if (!selectedGame.value) return
-    selectedGame.value = newAccountPerGame.find(g => g.name === selectedGame.value.name)
+    selectedGame.value = newAccountsPerGame.find(g => g.name === selectedGame.value.name)
     if (!selectedGame.value) {
-        selectedGame.value = newAccountPerGame[0]
+        selectedGame.value = newAccountsPerGame[0]
         selectedAccount.value = selectedGame.value.accounts[0] ?? null
         return
     }
@@ -315,6 +315,22 @@ const manageTaskLog = async (task) => {
             createNotification('success', 'Task updated!', 1000)
             task.last_completed = task.isCompleted ? null : new Date()
             emit('refreshAccount', selectedGame.value.id, selectedAccount.value.id)
+        }
+    )
+}
+
+const completeTaskLog = async (task, account_id, game_id) => {
+    const taskLogData = {
+        task_id: task.id,
+        account_id
+    };
+
+    await apiCall(
+        () => window.api.insertTaskLog(taskLogData),
+        () => {
+            createNotification('success', 'Task updated!', 1000)
+            task.last_completed = new Date()
+            emit('refreshAccount', game_id, account_id)
         }
     )
 }
@@ -478,5 +494,24 @@ const apiCall = async (fn, onSuccess) => {
 
 onMounted(async () => {
     missingGames.value = await window.api.getGamesWithoutAccounts()
+
+    window.api.on('game-detected', (event, game) => {
+        const gameGroup = props.accountsPerGame.find(g => g.name === game)
+        if (!gameGroup) return
+
+        gameGroup.accounts.forEach(account => {
+            const toCheck = settings.value.automaticDailies[gameGroup.id]?.includes(account.id)
+            if (toCheck) {
+                const task = account.tasks['Daily'][0]
+                if (task && task.id && !task.isCompleted) {
+                    completeTaskLog(task, account.id, gameGroup.id)
+                }
+            }
+        })
+    })
+})
+
+onUnmounted(async () => {
+    window.api.removeAllListeners('game-detected')
 })
 </script>

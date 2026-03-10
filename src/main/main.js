@@ -5,18 +5,46 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { Notification } from 'electron';
+import { GAME_CONFIG } from '../game-config.js';
+
+const store = new Store()
+const PRELOAD_PATH = path.join(__dirname, 'preload.js');
+let mainWindow;
+
+let monitorInterval = null
+
+const { exec } = require('child_process');
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ]);
 
-const store = new Store()
-let mainWindow;
-
-const PRELOAD_PATH = path.join(__dirname, 'preload.js');
-
 if (started) {
   app.quit();
+}
+
+function startMonitoring() {
+  if (monitorInterval) return;
+
+  function checkProcesses() {
+    exec('tasklist', (err, stdout) => {
+      if (err) return
+
+      for (const [game, config] of Object.entries(GAME_CONFIG)) {
+        if (stdout.includes(config.process)) {
+          mainWindow.webContents.send('game-detected', game)
+        }
+      }
+    })
+  }
+  checkProcesses()
+
+  monitorInterval = setInterval(checkProcesses, 30000)
+}
+
+function stopMonitoring() {
+  clearInterval(monitorInterval);
+  monitorInterval = null;
 }
 
 // Groups tasks by type for a given account
@@ -145,13 +173,14 @@ ipcMain.handle("loadSettings", () => {
 ipcMain.handle("saveSettings", (event, settings) => {
   try {
     store.set(settings)
+    settings.checkGachaProcesses ? startMonitoring() : stopMonitoring()
     return { success: true }
   } catch (error) {
     return { success: false, error: error.message }
   }
 })
 
-ipcMain.handle('sendNotification', (event, {title, body}) => {
+ipcMain.handle('sendNotification', (event, { title, body }) => {
   try {
     const notification = new Notification({
       title: title,
@@ -183,6 +212,11 @@ app.whenReady().then(() => {
 
   createMainWindow()
 
+  if (store.store.checkGachaProcesses) {
+    mainWindow.webContents.once('did-finish-load', () => {
+      startMonitoring()
+    })
+  }
 });
 
 app.on('window-all-closed', () => {
