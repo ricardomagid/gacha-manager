@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1] - 2026-03-10
+### Fixed
+- Remove accounts from the settings when deleted
+
 ## [0.3.0] - 2026-03-10
 ### Added
 - Auto-detect running games to automatically complete daily tasks

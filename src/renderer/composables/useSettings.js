@@ -30,14 +30,16 @@ async function loadSettings() {
 loadSettings()
 
 export function useSettings() {
-    async function saveSettings() {
+    async function saveSettings(silent = false) {
         try {
             const response = await window.api.saveSettings(JSON.parse(JSON.stringify(settings.value)))
 
-            if (response.success) {
-                createNotification('success', 'Settings saved!', 2000)
-            } else {
-                createNotification('error', `Error: ${response.error || 'Unknown error'}`, 2000)
+            if (!silent) {
+                if (response.success) {
+                    createNotification('success', 'Settings saved!', 2000)
+                } else {
+                    createNotification('error', `Error: ${response.error || 'Unknown error'}`, 2000)
+                }
             }
         } catch (err) {
             createNotification('error', `Critical Error: ${err.message}`, 2000)

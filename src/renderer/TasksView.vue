@@ -40,7 +40,7 @@
                             <span class="account-server">{{ selectedAccount?.server }}</span>
                             <span class="account-uid" v-if="!editingUid" @click="startUidEdit">{{ selectedAccount?.uid
                                 || 0
-                            }}</span>
+                                }}</span>
                             <input class="account-uid account-uid-input" v-else type="text" v-model="editUidValue"
                                 @keyup.enter="commitUidEdit(selectedAccount.id)"
                                 @blur="commitAndCancelUidEdit(selectedAccount.id)" @keyup.escape="cancelUidEdit"
@@ -283,10 +283,15 @@ const insertAccount = async () => {
 const deleteAccount = async () => {
     const ok = await confirm('Are you sure you want to delete this account?')
     if (!ok) return
+    const accountId = selectedAccount.value.id
+    const gameId = selectedGame.value.id
     await apiCall(
-        () => window.api.deleteAccount(selectedAccount.value.id),
+        () => window.api.deleteAccount(accountId),
         () => {
             createNotification('success', 'Account deleted!', 1000)
+            settings.value.automaticDailies[gameId] = settings.value.automaticDailies[gameId]?.filter(id => id !== accountId)
+            settings.value.windowsNotifications[gameId] = settings.value.windowsNotifications[gameId]?.filter(id => id !== accountId)
+            saveSettings(true)
             emit('refresh')
         }
     )
