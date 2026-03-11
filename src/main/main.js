@@ -8,7 +8,12 @@ import { Notification } from 'electron';
 import { GAME_CONFIG } from '../game-config.js';
 
 const { updateElectronApp } = require('update-electron-app');
-updateElectronApp({ repo: 'ricardomagid/gacha-manager' });
+updateElectronApp({
+  updateSource: {
+    type: 'github',
+    repo: 'https://github.com/ricardomagid/gacha-manager'
+  }
+});
 
 const store = new Store()
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
