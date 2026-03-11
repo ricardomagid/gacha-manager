@@ -91,7 +91,7 @@ export function seedDatabase() {
     const SEED = [
         {
             table: "task_types",
-            values: ["Daily", "Weekly", "Monthly", "Endgame", "Event"],
+            values: ["Daily", "Weekly", "Monthly", "Endgame", "Seasonal", "Event"],
             columns: ["name"]
         },
         {
@@ -158,6 +158,11 @@ export function seedDatabase() {
                     game: "Genshin Impact"
                 },
                 {
+                    label: "Stygian Onslaught",
+                    type: "Endgame",
+                    game: "Genshin Impact"
+                },
+                {
                     label: "Memory of Chaos",
                     type: "Endgame",
                     game: "Honkai: Star Rail"
@@ -172,16 +177,31 @@ export function seedDatabase() {
                     type: "Endgame",
                     game: "Honkai: Star Rail"
                 },
-                /*                 {
-                                    label: "Shiyu Defense",
-                                    type: "Endgame",
-                                    game: "Zenless Zone Zero"
-                                },
-                                {
-                                    label: "Deadly Assault",
-                                    type: "Endgame",
-                                    game: "Zenless Zone Zero"
-                                }, */
+                {
+                    label: "Anomaly Arbitration",
+                    type: "Endgame",
+                    game: "Honkai: Star Rail"
+                },
+                {
+                    label: "Shiyu Defense",
+                    type: "Endgame",
+                    game: "Zenless Zone Zero"
+                },
+                {
+                    label: "Deadly Assault",
+                    type: "Endgame",
+                    game: "Zenless Zone Zero"
+                },
+                {
+                    label: "Battle Trial",
+                    type: "Seasonal",
+                    game: "Zenless Zone Zero"
+                },
+                {
+                    label: "Threshold Simulation",
+                    type: "Seasonal",
+                    game: "Zenless Zone Zero"
+                }
             ]
         }
     ];

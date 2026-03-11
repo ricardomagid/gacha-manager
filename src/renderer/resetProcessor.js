@@ -16,6 +16,14 @@ const HSR_ENDGAME_ANCHORS = Object.fromEntries(
   Object.entries(GAME_CONFIG['Honkai: Star Rail'].endgame_anchors).map(([k, v]) => [k, new Date(v)])
 );
 
+const ZZZ_ENDGAME_ANCHORS = Object.fromEntries(
+  Object.entries(GAME_CONFIG['Zenless Zone Zero'].endgame_anchors).map(([k, v]) => [k, new Date(v)])
+);
+
+const PATCH_START = Object.fromEntries(
+  Object.entries(GAME_CONFIG).map(([k, v]) => [k, new Date(v.version_start)])
+)
+
 const RESET_CONFIG = {
   "Weekly Bosses": (lastDailyReset) =>
     getWeeklyResetWindow(lastDailyReset),
@@ -35,6 +43,9 @@ const RESET_CONFIG = {
   "Imaginarium Theater": (lastDailyReset) =>
     getMonthlyResetWindow(lastDailyReset),
 
+  "Stygian Onslaught": (lastDailyReset) =>
+    getStygianOnslaughtResetWindow(lastDailyReset),
+
   "Memory of Chaos": (lastDailyReset) =>
     getHSREndgameResetWindow(lastDailyReset, "Memory of Chaos"),
 
@@ -43,6 +54,21 @@ const RESET_CONFIG = {
 
   "Apocalyptic Shadow": (lastDailyReset) =>
     getHSREndgameResetWindow(lastDailyReset, "Apocalyptic Shadow"),
+
+  "Anomaly Arbitration": () =>
+    getAnomalyArbitrationResetWindow(),
+
+  "Shiyu Defense": (lastDailyReset) =>
+    getZZZEndgameResetWindow(lastDailyReset, 'Shiyu Defense'),
+
+  "Deadly Assault": (lastDailyReset) =>
+    getZZZEndgameResetWindow(lastDailyReset, 'Deadly Assault'),
+
+  "Battle Trial": (lastDailyReset) =>
+    getZZZSeasonalResetWindow(lastDailyReset, 'Battle Trial', 126),
+
+  "Threshold Simulation": (lastDailyReset) =>
+    getZZZSeasonalResetWindow(lastDailyReset, 'Threshold Simulation', 126),
 };
 
 function getLastDailyReset(now, serverResetHour) {
@@ -100,8 +126,46 @@ function getMidMonthResetWindow(lastDailyReset) {
   return { last: lastReset, next: nextReset };
 }
 
-function getHSRWeeklyResetWindow(lastDailyResetInput, mode) {
-  const current = new Date(lastDailyResetInput);
+function getStygianOnslaughtResetWindow(lastDailyReset) {
+  const lastReset = new Date(lastDailyReset);
+  const now = new Date();
+
+  const patchStart = PATCH_START['Genshin Impact'];
+  patchStart.setUTCHours(lastReset.getUTCHours())
+  const duration = GAME_CONFIG['Genshin Impact']?.version_duration;
+
+  // Starts a week after the patch starts
+  const stygianStart = new Date(patchStart);
+  stygianStart.setUTCDate(stygianStart.getUTCDate() + 7);
+  // Ends a day before the patch ends
+  const stygianEnd = new Date(patchStart);
+  stygianEnd.setUTCDate(stygianEnd.getUTCDate() + duration - 1)
+
+  if (stygianStart > now || now > stygianEnd) {
+    return { isDisabled: true }
+  } else {
+    return { last: stygianStart, next: stygianEnd }
+  }
+}
+
+function getAnomalyArbitrationResetWindow() {
+  const config = GAME_CONFIG['Honkai: Star Rail']
+
+  const resetHour = config.maintenance_start + config.maintenance_estimation;
+  const patchStart = PATCH_START['Honkai: Star Rail'];
+
+  const anomalyStart = new Date(patchStart);
+  anomalyStart.setUTCHours(resetHour);
+
+  const anomalyEnd = new Date(patchStart);
+  anomalyEnd.setUTCDate(anomalyEnd.getUTCDate() + config.version_duration - 1);
+  anomalyEnd.setUTCHours(config.maintenance_start);
+
+  return { last: anomalyStart, next: anomalyEnd }
+}
+
+function getHSRWeeklyResetWindow(lastDailyReset, mode) {
+  const current = new Date(lastDailyReset);
   return getIntervalResetWindow(
     HSR_WEEKLY_ANCHORS[mode],
     current,
@@ -109,13 +173,41 @@ function getHSRWeeklyResetWindow(lastDailyResetInput, mode) {
   );
 }
 
-function getHSREndgameResetWindow(lastDailyResetInput, mode) {
-  const current = new Date(lastDailyResetInput);
+function getHSREndgameResetWindow(lastDailyReset, mode) {
+  const current = new Date(lastDailyReset);
   return getIntervalResetWindow(
     HSR_ENDGAME_ANCHORS[mode],
     current,
     42
   );
+}
+
+function getZZZEndgameResetWindow(lastDailyReset, mode) {
+  const current = new Date(lastDailyReset);
+  return getIntervalResetWindow(
+    ZZZ_ENDGAME_ANCHORS[mode],
+    current,
+    14
+  );
+}
+
+function getZZZSeasonalResetWindow(lastDailyReset, mode, intervalDays) {
+  // Seasonals start when servers open and end on daily reset
+  const config = GAME_CONFIG['Zenless Zone Zero'];
+  const resetHour = config.maintenance_start + config.maintenance_estimation;
+
+  const current = new Date(lastDailyReset);
+  current.setUTCHours(resetHour);
+
+  const { last, next } = getIntervalResetWindow(
+    ZZZ_ENDGAME_ANCHORS[mode],
+    current,
+    intervalDays
+  );
+
+  next.setUTCHours(new Date(lastDailyReset).getUTCHours());
+
+  return { last, next };
 }
 
 function getIntervalResetWindow(anchor, current, intervalDays) {
@@ -157,11 +249,15 @@ export function computeSingleAccountResetData(account) {
         ? { last: lastDailyReset, next: nextDailyReset }
         : RESET_CONFIG[task.label](lastDailyReset);
 
-      const isDone = task.last_completed !== null && new Date(task.last_completed) > resetWindow.last;
+      if (!resetWindow.isDisabled) {
+        const isDone = task.last_completed !== null && new Date(task.last_completed) > resetWindow.last;
 
-      task.duration = resetWindow.next - resetWindow.last;
-      task.nextReset = resetWindow.next - now;
-      task.isCompleted = isDone;
+        task.duration = resetWindow.next - resetWindow.last;
+        task.nextReset = resetWindow.next - now;
+        task.isCompleted = isDone;
+      } else {
+        task.isDisabled = true
+      }
     })
   })
 }

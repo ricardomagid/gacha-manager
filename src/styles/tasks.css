@@ -566,6 +566,25 @@
     border-color: var(--done);
 }
 
+.task.disabled {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+}
+
+.task.disabled .task-name {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(240, 245, 242, 0.25);
+}
+
+.task.disabled .task-check {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--muted);
+    font-size: 12px;
+}
+
 .task-name {
     flex: 1;
     font-size: 13px;

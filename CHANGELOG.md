@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.0] - 2026-03-11
+### Added
+- Completed tasks list for the current set of games
+
 ## [0.3.1] - 2026-03-10
 ### Fixed
 - Remove accounts from the settings when deleted

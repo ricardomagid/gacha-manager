@@ -99,12 +99,13 @@
                         </div>
                         <div class="task-list">
                             <div class="task" v-for="task in tasks" :key="task.label"
-                                :class="{ done: task.isCompleted }" @click="manageTaskLog(task)">
+                                :class="{ done: task.isCompleted, disabled: task.isDisabled }" @click="manageTaskLog(task)">
                                 <div class="task-check">
                                     <span v-if="task.isCompleted">✓</span>
+                                    <span v-if="task.isDisabled">✗</span>
                                 </div>
                                 <p class="task-name">{{ task.label }}</p>
-                                <div class="task-completion">
+                                <div class="task-completion" v-if="!task.isDisabled">
                                     <span class="task-countdown"
                                         :class="{ urgent: !task.isCompleted && isUrgent(task) }">
                                         {{ task.isCompleted ? 'Done' : countdownFormat(task.nextReset) }}
@@ -309,6 +310,8 @@ const addGame = async (game) => {
 }
 
 const manageTaskLog = async (task) => {
+    if (task.isDisabled) return
+
     const taskLogData = {
         task_id: task.id,
         account_id: selectedAccount.value.id
