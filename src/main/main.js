@@ -6,12 +6,13 @@ import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { Notification } from 'electron';
 import { GAME_CONFIG } from '../game-config.js';
+import { updateElectronApp, UpdateSourceType } from 'update-electron-app';
+import { exec } from 'child_process';
 
-const { updateElectronApp } = require('update-electron-app');
 updateElectronApp({
   updateSource: {
-    type: 'github',
-    repo: 'https://github.com/ricardomagid/gacha-manager'
+    type: UpdateSourceType.ElectronPublicUpdateService,
+    repo: 'ricardomagid/gacha-manager'
   }
 });
 
@@ -20,8 +21,6 @@ const PRELOAD_PATH = path.join(__dirname, 'preload.js');
 let mainWindow;
 
 let monitorInterval = null
-
-const { exec } = require('child_process');
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
