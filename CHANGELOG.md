@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.0] - 2026-03-11
+### Added
+- Auto-update and installer 
+
 ## [0.4.0] - 2026-03-11
 ### Added
 - Completed tasks list for the current set of games
@@ -20,5 +24,6 @@
 ### Added
 - Windows desktop notifications for urgent tasks
 
-## [0.1.0]
+## [0.1.0] - 2026-03-06
+### Added
 - Initial release

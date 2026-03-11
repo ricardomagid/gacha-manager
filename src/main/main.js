@@ -7,6 +7,7 @@ import Store from 'electron-store';
 import { Notification } from 'electron';
 import { GAME_CONFIG } from '../game-config.js';
 
+const { autoUpdater } = require('electron-updater');
 const store = new Store()
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
 let mainWindow;
@@ -198,12 +199,14 @@ ipcMain.handle('sendNotification', (event, { title, body }) => {
 // --- App Entry Point ---
 
 app.whenReady().then(() => {
+  autoUpdater.checkForUpdatesAndNotify();
+
   protocol.handle('app', (request) => {
     const url = request.url.replace('app://', '');
     return net.fetch('file://' + path.join(__dirname, '../renderer/main_window', url).replace(/\\/g, '/'));
   });
 
-  app.setAppUserModelId(process.execPath);
+  app.setAppUserModelId('com.ricardomagid.gacha-manager');
 
   initDB();
   runMigrations();

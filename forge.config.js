@@ -34,10 +34,25 @@ module.exports = {
   rebuildConfig: {
     force: true,
   },
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'ricardomagid',
+          name: 'gacha-manager'
+        },
+        prerelease: false,
+        draft: true,
+      }
+    }
+  ],
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: 'gacha_manager'
+      },
     },
     {
       name: '@electron-forge/maker-zip',
