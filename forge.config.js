@@ -52,6 +52,7 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       config: {
         name: 'gacha_manager',
+        setupExe: 'gacha-manager-setup.exe',
         remoteReleases: 'https://github.com/ricardomagid/gacha-manager'
       },
     },
