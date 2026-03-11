@@ -4,10 +4,6 @@
 ### Fixed
 - Replaces electron-updater with update-electron-app
 
-## [0.5.2] - 2026-03-11
-### Fixed
-- Auto-update detection
-
 ## [0.5.1] - 2026-03-11
 ### Added
 - Theme selection now persists between sessions
