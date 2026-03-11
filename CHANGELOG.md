@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.1] - 2026-03-11
+### Added
+- Theme selection now persists between sessions
+
 ## [0.5.0] - 2026-03-11
 ### Added
 - Auto-update and installer 

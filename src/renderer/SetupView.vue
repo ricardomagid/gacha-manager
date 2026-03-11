@@ -57,11 +57,9 @@
 import '../styles/setup.css';
 import { ref, computed, onMounted } from 'vue';
 import { useNotification } from './composables/useNotification.js'
+import { useSettings } from './composables/useSettings.js';
 const { createNotification } = useNotification()
-
-const props = defineProps({
-    selectedTheme: { type: String, default: '' }
-});
+const { settings } = useSettings()
 
 const emit = defineEmits(['done'])
 
@@ -75,8 +73,8 @@ const hasSelection = computed(() =>
 );
 
 const bgStyle = computed(() => ({
-    backgroundImage: props.selectedTheme
-        ? `url(${new URL(`../assets/themes/${props.selectedTheme}/setup_background.webp`, import.meta.url).href})`
+    backgroundImage: settings.value.theme
+        ? `url(${new URL(`../assets/themes/${settings.value.theme}/setup_background.webp`, import.meta.url).href})`
         : ''
 }));
 

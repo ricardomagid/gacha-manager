@@ -5,6 +5,7 @@ export const config = {
     settings: {
         checkGachaProcesses: false,
         automaticDailies: {},
-        windowsNotifications: {}
+        windowsNotifications: {},
+        theme: ""
     }
 }

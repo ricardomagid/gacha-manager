@@ -32,7 +32,7 @@
         <div class="main">
             <div class="main-inner" v-if="selectedGame && selectedAccount">
                 <div class="hero">
-                    <img v-if="selectedTheme" :src="getCharacterThemeImage()" class="hero-img">
+                    <img v-if="settings.theme" :src="getCharacterThemeImage()" class="hero-img">
                     <p class="hero-title">{{ selectedGame.name }} {{ Number(selectedGame.game_version).toFixed(1) }}</p>
 
                     <div class="hero-bottom">
@@ -50,7 +50,7 @@
                         <div class="hero-progress">
                             <span :class="{ complete: getCompletionPercentage(selectedAccount.tasks) === 100 }">{{
                                 getCompletionPercentage(selectedAccount.tasks) }}% Completed</span>
-                            <img v-if="getCompletionPercentage(selectedAccount.tasks) === 100 && selectedTheme"
+                            <img v-if="getCompletionPercentage(selectedAccount.tasks) === 100 && settings.theme"
                                 :src="getCompletionSticker()" class="complete-sticker">
                         </div>
                         <div class="hero-actions">
@@ -145,8 +145,7 @@ const props = defineProps({
     accountsPerGame: {
         type: Array,
         default: () => []
-    },
-    selectedTheme: { type: String, default: '' }
+    }
 })
 
 const emit = defineEmits(['refreshAccount', 'refresh'])
@@ -476,11 +475,11 @@ const getGameImageBackgroundUrl = (game) => {
 };
 
 const getCharacterThemeImage = () => {
-    return new URL(`../assets/themes/${props.selectedTheme}/game_theme.webp`, import.meta.url).href;
+    return new URL(`../assets/themes/${settings.value.theme}/game_theme.webp`, import.meta.url).href;
 }
 
 const getCompletionSticker = () => {
-    return new URL(`../assets/themes/${props.selectedTheme}/tasks_completed.webp`, import.meta.url).href;
+    return new URL(`../assets/themes/${settings.value.theme}/tasks_completed.webp`, import.meta.url).href;
 }
 
 const handleImageError = (game) => {

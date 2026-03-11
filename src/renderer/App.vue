@@ -1,17 +1,17 @@
 <template>
-    <div :class="selectedTheme" id="app">
+    <div :class="settings.theme" id="app">
         <NotificationCenter />
         <AppSettings :accountsPerGame="accountsPerGame" />
         <ConfirmDialogue />
         <div class="app-bar">
             <span class="app-bar-logo">Theme</span>
             <div class="app-bar-right">
-                <button class="theme-btn" :class="{ active: selectedTheme === '' }" @click="selectedTheme = ''">
+                <button class="theme-btn" :class="{ active: settings.theme === '' }" @click="settings.theme = ''; saveSettings(true)">
                     <span class="theme-swatch emerald"></span>
                     <span>Default</span>
                 </button>
-                <button class="theme-btn" :class="{ active: selectedTheme === 'sparkle' }"
-                    @click="selectedTheme = 'sparkle'">
+                <button class="theme-btn" :class="{ active: settings.theme === 'sparkle' }"
+                    @click="settings.theme = 'sparkle'; saveSettings(true)">
                     <span class="theme-swatch crimson"></span>
                     <span>Sparkle</span>
                 </button>
@@ -21,10 +21,10 @@
                 </button>
             </div>
         </div>
-        <SetupView v-if="currentView === 'setup'" @done="onSetupDone" :selectedTheme="selectedTheme" />
+        <SetupView v-if="currentView === 'setup'" @done="onSetupDone" />
         <TasksView v-else-if="currentView === 'tasks'" :accountsPerGame="accountsPerGame"
-            @refreshAccount="updateAccountTaskData" @refresh="loadData" :selectedTheme="selectedTheme" />
-        <ScheduleView v-else-if="currentView === 'schedule'" :selectedTheme="selectedTheme" />
+            @refreshAccount="updateAccountTaskData" @refresh="loadData" />
+        <ScheduleView v-else-if="currentView === 'schedule'" />
     </div>
 </template>
 
@@ -43,11 +43,10 @@ import { useSettings } from './composables/useSettings.js'
 import { computeTaskResetData, computeSingleAccountResetData } from './resetProcessor'
 
 const { setTheme } = useNotification()
-const { showSettings } = useSettings()
+const { settings, showSettings, saveSettings } = useSettings()
 
 const accountsPerGame = ref([])
 const currentView = ref(null);
-const selectedTheme = ref('')
 let taskTimer = null
 
 const loadData = async () => {
@@ -77,7 +76,7 @@ const scheduleUpdate = () => {
     }, msUntilNextMinute)
 }
 
-watch(selectedTheme, (val) => setTheme(val), { immediate: true })
+watch(() => settings.value.theme, (val) => setTheme(val), { immediate: true });
 
 onMounted(async () => {
     await loadData()
