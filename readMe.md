@@ -7,7 +7,7 @@ A desktop task manager built for people who play multiple gacha games at once. T
 ---
 
 ## Project Status
-- **Current Version:** `v0.5.7` (Alpha)
+- **Current Version:** `v0.5.8` (Alpha)
 - **Status:** Active Development. Core logic is functional; game-specific task lists and event tracking are currently being populated.
 
 ## Preview
