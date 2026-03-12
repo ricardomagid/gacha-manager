@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const yaml = require('js-yaml');
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 
@@ -36,10 +37,20 @@ module.exports = {
         stdio: 'inherit'
       });
       console.log('  ✓ Copied production node_modules');
+      const appUpdateYml = {
+        provider: 'github',
+        owner: 'ricardomagid',
+        repo: 'gacha-manager',
+      };
+
+      fs.writeFileSync(
+        path.join(buildPath, '..', 'app-update.yml'),
+        yaml.dump(appUpdateYml)
+      );
+      console.log('  ✓ Created app-update.yml');
     },
     postMake: async (forgeConfig, makeResults) => {
       const crypto = require('crypto');
-      const yaml = require('js-yaml');
 
       for (const result of makeResults) {
         if (result.platform === 'win32') {
@@ -91,7 +102,7 @@ module.exports = {
   makers: [
     {
       name: '@electron-addons/electron-forge-maker-nsis',
-      config: {},
+      config: { outFileName: 'gacha-manager-Setup-${version}.exe' },
     },
     {
       name: '@electron-forge/maker-zip',

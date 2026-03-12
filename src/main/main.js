@@ -7,7 +7,7 @@ import { Notification } from 'electron';
 import { GAME_CONFIG } from '../game-config.js';
 const { autoUpdater } = require('electron-updater');
 import { exec } from 'child_process';
-
+const { dialog } = require('electron');
 const store = new Store()
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
 let mainWindow;
@@ -194,6 +194,11 @@ ipcMain.handle('sendNotification', (event, { title, body }) => {
 
 app.whenReady().then(() => {
   if (app.isPackaged) {
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'ricardomagid',
+      repo: 'gacha-manager',
+    });
     autoUpdater.checkForUpdatesAndNotify();
   }
 
