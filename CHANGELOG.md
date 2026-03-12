@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.1] - 2026-03-12
+## [0.6.2] - 2026-03-12
 ### Fixed
 - Auto-generates latest.yml on publish for electron-updater compatibility
 

@@ -61,11 +61,13 @@ module.exports = {
           };
 
           const outDir = path.dirname(exePath);
+          const ymlPath = path.join(outDir, 'latest.yml');
           fs.writeFileSync(
-            path.join(outDir, 'latest.yml'),
+            ymlPath,
             yaml.dump(latestYml)
           );
           console.log('✓ Generated latest.yml');
+          result.artifacts.push(ymlPath)
         }
       }
     }
