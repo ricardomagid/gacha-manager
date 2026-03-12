@@ -25,10 +25,17 @@ module.exports = {
       console.log('  ✓ Built renderer');
 
       console.log('Copying node_modules into build...');
-      const srcNodeModules = path.join(__dirname, 'node_modules');
+
+      const { execSync } = require('child_process');
       const destNodeModules = path.join(buildPath, 'node_modules');
-      fs.cpSync(srcNodeModules, destNodeModules, { recursive: true });
-      console.log('  ✓ Copied all node_modules');
+      fs.mkdirSync(destNodeModules, { recursive: true });
+      fs.copyFileSync(path.join(__dirname, 'package.json'), path.join(buildPath, 'package.json'));
+      fs.copyFileSync(path.join(__dirname, 'package-lock.json'), path.join(buildPath, 'package-lock.json'));
+      execSync(`npm ci --prefix "${buildPath}" --omit=dev`, {
+        cwd: __dirname,
+        stdio: 'inherit'
+      });
+      console.log('  ✓ Copied production node_modules');
     },
   },
   rebuildConfig: {
@@ -49,12 +56,8 @@ module.exports = {
   ],
   makers: [
     {
-      name: '@electron-forge/maker-squirrel',
-      config: {
-        name: 'gacha-manager',
-        setupExe: 'gacha-manager-setup.exe',
-        remoteReleases: 'https://github.com/ricardomagid/gacha-manager'
-      },
+      name: '@electron-addons/electron-forge-maker-nsis',
+      config: {},
     },
     {
       name: '@electron-forge/maker-zip',

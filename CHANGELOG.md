@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.0] - 2026-03-12
+### Fixed
+- Switched from Squirrel to NSIS installer for reliable auto-update support
+
 ## [0.5.3] - 2026-03-11
 ### Fixed
 - Replaces electron-updater with update-electron-app

@@ -2,19 +2,11 @@ import { app, BrowserWindow, ipcMain, protocol, net } from 'electron';
 import { initDB, runMigrations, seedDatabase, syncGameConfig } from './db/db.js';
 import { fetchTasksForAccount, fetchAccounts, fetchGamesWithoutAccounts, insertAccounts, updateAccount, deleteAccount, insertTaskLog, deleteLastTaskLog } from './helper.js';
 import path from 'node:path';
-import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { Notification } from 'electron';
 import { GAME_CONFIG } from '../game-config.js';
-import { updateElectronApp, UpdateSourceType } from 'update-electron-app';
+const { autoUpdater } = require('electron-updater');
 import { exec } from 'child_process';
-
-updateElectronApp({
-  updateSource: {
-    type: UpdateSourceType.ElectronPublicUpdateService,
-    repo: 'ricardomagid/gacha-manager'
-  }
-});
 
 const store = new Store()
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
@@ -25,10 +17,6 @@ let monitorInterval = null
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ]);
-
-if (started) {
-  app.quit();
-}
 
 function startMonitoring() {
   if (monitorInterval) return;
@@ -205,6 +193,10 @@ ipcMain.handle('sendNotification', (event, { title, body }) => {
 // --- App Entry Point ---
 
 app.whenReady().then(() => {
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+
   protocol.handle('app', (request) => {
     const url = request.url.replace('app://', '');
     return net.fetch('file://' + path.join(__dirname, '../renderer/main_window', url).replace(/\\/g, '/'));
