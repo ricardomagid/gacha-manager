@@ -37,6 +37,38 @@ module.exports = {
       });
       console.log('  ✓ Copied production node_modules');
     },
+    postMake: async (forgeConfig, makeResults) => {
+      const crypto = require('crypto');
+      const yaml = require('js-yaml');
+
+      for (const result of makeResults) {
+        if (result.platform === 'win32') {
+          const exePath = result.artifacts.find(a => a.endsWith('.exe'));
+          if (!exePath) continue;
+
+          const fileBuffer = fs.readFileSync(exePath);
+          const hash = crypto.createHash('sha512').update(fileBuffer).digest('base64');
+          const size = fs.statSync(exePath).size;
+          const fileName = path.basename(exePath);
+          const version = forgeConfig.packagerConfig?.appVersion || require('./package.json').version;
+
+          const latestYml = {
+            version,
+            files: [{ url: fileName, sha512: hash, size }],
+            path: fileName,
+            sha512: hash,
+            releaseDate: new Date().toISOString(),
+          };
+
+          const outDir = path.dirname(exePath);
+          fs.writeFileSync(
+            path.join(outDir, 'latest.yml'),
+            yaml.dump(latestYml)
+          );
+          console.log('✓ Generated latest.yml');
+        }
+      }
+    }
   },
   rebuildConfig: {
     force: true,

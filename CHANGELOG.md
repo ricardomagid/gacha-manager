@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.1] - 2026-03-12
+### Fixed
+- Auto-generates latest.yml on publish for electron-updater compatibility
+
 ## [0.6.0] - 2026-03-12
 ### Fixed
 - Switched from Squirrel to NSIS installer for reliable auto-update support
