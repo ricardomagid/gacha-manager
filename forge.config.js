@@ -60,7 +60,7 @@ module.exports = {
           const fileBuffer = fs.readFileSync(exePath);
           const hash = crypto.createHash('sha512').update(fileBuffer).digest('base64');
           const size = fs.statSync(exePath).size;
-          const fileName = path.basename(exePath);
+          const fileName = path.basename(exePath).replace(/ /g, '.');
           const version = forgeConfig.packagerConfig?.appVersion || require('./package.json').version;
 
           const latestYml = {
