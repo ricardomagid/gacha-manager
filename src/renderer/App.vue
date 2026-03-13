@@ -25,6 +25,7 @@
         <TasksView v-else-if="currentView === 'tasks'" :accountsPerGame="accountsPerGame"
             @refreshAccount="updateAccountTaskData" @refresh="loadData" />
         <ScheduleView v-else-if="currentView === 'schedule'" />
+        <AppFooter /> 
     </div>
 </template>
 
@@ -35,6 +36,7 @@ import '../styles/app.css';
 import SetupView from './SetupView.vue'
 import TasksView from './TasksView.vue'
 import ScheduleView from './ScheduleView.vue'
+import AppFooter from './AppFooter.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import ConfirmDialogue from './components/ConfirmDialogue.vue'
 import AppSettings from './components/AppSettings.vue'
