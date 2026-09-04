@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.8.6] - 2026-09-04
+## [0.8.7] - 2026-09-04
 ### Changed
 - Calendar UI improved
 
