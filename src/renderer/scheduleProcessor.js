@@ -1,9 +1,4 @@
 export function createScheduleProcessor(GAME_CONFIG) {
-
-  function formatVersion(v) {
-    return Number(v).toFixed(1);
-  }
-
   function slugify(name) {
     return name
       .toLowerCase()
@@ -20,11 +15,11 @@ export function createScheduleProcessor(GAME_CONFIG) {
   }
 
   async function gameImg(game, version) {
-    return await window.api.cacheImage(`games/${slugify(game)}_${formatVersion(version)}.webp`);
+    return await window.api.cacheImage(`games/${slugify(game)}_${version}.webp`);
   }
 
   async function livestreamImg(game, version) {
-    return await window.api.cacheImage(`games/${slugify(game)}_${formatVersion(version)}_livestream.webp`);
+    return await window.api.cacheImage(`games/${slugify(game)}_${version}_livestream.webp`);
   }
 
   function getLivestreamDate(phaseDate, hourArray, day = null, schedule, distance) {
@@ -161,7 +156,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
 
     for (const { phaseDate, patchData, phaseNum, baseKey, confirmed } of phaseEntries) {
       const characters = getPhaseCharacters(patchData, phaseNum);
-      const version = formatVersion(patchData.version);
+      const version = patchData.version;
       const isPhase1 = phaseNum === "1";
 
       if (characters.length > 1) {
@@ -213,7 +208,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
     return {
       nextPatchTrailer: {
         date: startDate,
-        label: `${gameData.abbr} ${formatVersion(gameData.next.version)} Trailer`,
+        label: `${gameData.abbr} ${gameData.next.version} Trailer`,
         img: await gameImg(game, gameData.current.version),
         fallbackImgs: [await defaultImg(game)],
         confirmed: true
@@ -229,13 +224,13 @@ export function createScheduleProcessor(GAME_CONFIG) {
         key: "current",
         openDate: phases.current.open,
         associatedLivestream: livestreamDate,
-        versionNumber: formatVersion(gameData.next.version)
+        versionNumber: gameData.next.version
       },
       {
         key: "next",
         openDate: phases.next.open,
         associatedLivestream: nextLivestreamDate,
-        versionNumber: formatVersion(gameData.next.future_livestream_version)
+        versionNumber: gameData.next.future_livestream_version
       }
     ];
 
@@ -295,7 +290,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
         ...(livestreamDate ? {
           livestream: {
             date: livestreamDate,
-            label: `${gameData.abbr} ${formatVersion(gameData.next.version)} Livestream`,
+            label: `${gameData.abbr} ${gameData.next.version} Livestream`,
             img: await livestreamImg(game, gameData.next.version),
             fallbackImgs: [await gameImg(game, gameData.current.version), await defaultImg(game)],
             confirmed: (livestreamDate.getTime() - Date.now()) <= (1000 * 60 * 60 * 24 * 3)
@@ -304,7 +299,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
         ...(gameData.current.is_version_duration_confirmed && gameData.next.is_version_duration_confirmed && nextLivestreamDate ? {
           nextLivestream: {
             date: nextLivestreamDate,
-            label: `${gameData.abbr} ${formatVersion(gameData.next.future_livestream_version)} Livestream`,
+            label: `${gameData.abbr} ${gameData.next.future_livestream_version} Livestream`,
             img: await livestreamImg(game, gameData.next.future_livestream_version),
             fallbackImgs: [await gameImg(game, gameData.next.version), await gameImg(game, gameData.current.version), await defaultImg(game)],
             confirmed: false
