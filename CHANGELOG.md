@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.5] - 2026-09-04
+### Fixed
+- Preserve version numbers in schedule
+
 ## [0.8.4] - 2026-06-21
 ### Added
 - Support for NTE-style livestream scheduling
