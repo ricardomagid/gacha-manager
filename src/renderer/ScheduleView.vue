@@ -2,28 +2,37 @@
     <div id="scheduleApp">
         <div class="schedule-header">
             <div class="schedule-month-nav">
-                <button class="nav-btn" @click="prevMonth"
-                    :style="{ visibility: canGoPrev ? 'visible' : 'hidden' }">&#8592;</button>
+                <button class="nav-btn" type="button" aria-label="Previous month" @click="prevMonth"
+                    :style="{ visibility: canGoPrev ? 'visible' : 'hidden' }">
+                    &#8592;
+                </button>
+
                 <div class="schedule-month-label">
                     {{ monthName }}
                     <span class="year">{{ currentYear }}</span>
                 </div>
-                <button class="nav-btn" @click="nextMonth"
-                    :style="{ visibility: canGoNext ? 'visible' : 'hidden' }">&#8594;</button>
+
+                <button class="nav-btn" type="button" aria-label="Next month" @click="nextMonth"
+                    :style="{ visibility: canGoNext ? 'visible' : 'hidden' }">
+                    &#8594;
+                </button>
             </div>
+
             <div class="server-select">
-                <button v-for="server in servers" :key="server" class="server-btn"
+                <button v-for="server in servers" :key="server" type="button" class="server-btn"
                     :class="{ active: selectedServer === server }" @click="selectedServer = server">
                     {{ server }}
                 </button>
             </div>
+
             <div class="schedule-nav">
-                <div v-for="game in gameList" :key="game" class="game-badge"
+                <button v-for="game in gameList" :key="game" type="button" class="game-badge"
                     :style="{ '--gc': GAME_CONFIG[game]?.color }"
-                    :class="{ 'game-badge--active': selectedGames.includes(game) }" @click="toggleSelectedGames(game)">
+                    :class="{ 'game-badge--active': selectedGames.includes(game) }"
+                    :aria-pressed="selectedGames.includes(game)" @click="toggleSelectedGames(game)">
                     <img :src="gameIcons[game]" :alt="game" class="game-badge-icon" />
-                    <span class="game-badge-name">{{ GAME_CONFIG[game].abbr }}</span>
-                </div>
+                    <span class="game-badge-name">{{ GAME_CONFIG[game]?.abbr ?? game }}</span>
+                </button>
             </div>
         </div>
 
@@ -43,36 +52,45 @@
                         {{ day }}
                     </div>
                 </div>
+
                 <div class="calendar-weeks">
                     <div v-for="(week, wi) in weeks" :key="wi" class="week">
                         <div v-for="(day, di) in week" :key="di" class="cell" :class="{
                             empty: !day,
                             today: day && isToday(day.date),
-                            selected: day && selectedDay &&
-                                day.date.toDateString() === selectedDay.date.toDateString()
-                        }" @click="day && selectDay(day)">
-
+                            'cell--has-art': day && day.releases.length > 0
+                        }">
                             <template v-if="day">
-
-                                <div v-if="day.releases.length" class="cell-bg">
-                                    <div v-for="(rel, ri) in day.releases" :key="ri" class="cell-bg-slice" :style="{
-                                        width: day.releases.length === 1 ? '100%' : '50%',
-                                        backgroundImage: getBackgroundImageWithFallbacks(rel)
-                                    }" />
-                                </div>
-
                                 <span class="day-number">{{ day.date.getDate() }}</span>
-                                <div class="events-list">
-                                    <div v-for="event in day.events.slice(0, 3)" :key="event.label" class="event"
-                                        :style="{ '--gc': event.color }" :class="{ unconfirmed: !event.confirmed }"
-                                        @click.stop="selectedEvent = event; selectedDay = day">
-                                        {{ event.label }}
-                                    </div>
-                                    <span v-if="day.events.length > 3" class="event-overflow">
-                                        +{{ day.events.length - 3 }}
-                                    </span>
-                                </div>
 
+                                <div class="cell-content">
+                                    <div v-if="day.releases.length" class="cell-art">
+                                        <div class="cell-art-images">
+                                            <div v-for="(release, ri) in day.releases"
+                                                :key="`${release.game}-${release.label}-${ri}`" class="cell-art-slice"
+                                                :style="{
+                                                    width: `${100 / day.releases.length}%`,
+                                                    backgroundImage: getBackgroundImageWithFallbacks(release)
+                                                }" role="img" :aria-label="release.label" />
+                                        </div>
+
+                                        <div class="cell-art-shade" />
+                                    </div>
+
+                                    <div v-if="day.events.length" class="events-list"
+                                        :class="{ 'events-list--over-art': day.releases.length }">
+                                        <button v-for="(event, ei) in day.events"
+                                            :key="`${event.game}-${event.label}-${event.date.getTime()}-${ei}`"
+                                            type="button" class="event" :style="{ '--gc': event.color }"
+                                            :class="{ unconfirmed: !event.confirmed }"
+                                            :aria-label="`${event.label}, ${formatEventTime(event)}`"
+                                            @mouseenter="showEventTooltip(event, $event)" @mouseleave="hideEventTooltip"
+                                            @focus="showEventTooltip(event, $event)" @blur="hideEventTooltip">
+                                            <span class="event-dot" />
+                                            <span class="event-short-label">{{ event.title }}</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </template>
                         </div>
                     </div>
@@ -82,96 +100,102 @@
                     Dates are estimated based on patch trends and may be subject to change
                 </div>
             </div>
+        </div>
 
-            <div class="event-panel" :class="{ 'event-panel--visible': selectedDay }">
-                <template v-if="selectedDay">
-                    <div class="event-panel-date">
-                        {{ selectedDay.date.toLocaleDateString('en-US', {
-                            weekday: 'long', month: 'long', day: 'numeric'
-                        }) }}
+        <Teleport to="body">
+            <Transition name="event-tooltip">
+                <div v-if="hoveredEvent" class="schedule-event-tooltip" :class="{
+                    'schedule-event-tooltip--portrait': hoveredEventIsPortrait,
+                    'schedule-event-tooltip--landscape': !hoveredEventIsPortrait
+                }" :style="tooltipStyle" role="tooltip">
+                    <div v-if="hoveredEventHasImage" class="schedule-event-tooltip-hero"
+                        :style="{ backgroundImage: getBackgroundImageWithFallbacks(hoveredEvent) }">
+                        <div class="schedule-event-tooltip-hero-shade" />
+                        <span class="schedule-event-tooltip-game">
+                            {{ GAME_CONFIG[hoveredEvent.game]?.abbr ?? hoveredEvent.game }}
+                        </span>
                     </div>
 
-                    <div v-if="selectedDay.events.length === 0" class="event-panel-empty-day">
-                        <span class="event-panel-empty-day-label">Nothing scheduled</span>
-                        <img v-if="settings.theme" :src="getNoEventsSticker()" class="no-events-sticker">
-                    </div>
-
-                    <div v-else class="event-panel-content">
-                        <div class="event-panel-hero">
-                            <img v-if="selectedEvent?.img && eventSrc" :src="eventSrc" :key="selectedEvent.img"
-                                @error="onError" class="event-panel-img" />
-                            <div v-else class="event-panel-img-empty" />
+                    <div class="schedule-event-tooltip-body">
+                        <div class="schedule-event-tooltip-topline">
+                            <span v-if="!hoveredEventHasImage"
+                                class="schedule-event-tooltip-game schedule-event-tooltip-game--inline">
+                                {{ GAME_CONFIG[hoveredEvent.game]?.abbr ?? hoveredEvent.game }}
+                            </span>
+                            <span class="schedule-event-tooltip-date">
+                                {{ formatEventDate(hoveredEvent) }}
+                            </span>
                         </div>
 
-                        <div class="event-panel-list">
-                            <div v-for="event in selectedDay.events" :key="event.label" class="event-panel-item"
-                                :style="{ '--gc': event.color }"
-                                :class="{ 'event-panel-item--active': selectedEvent === event }"
-                                @click="selectedEvent = event">
-                                <span class="event-panel-item-dot" />
-                                <div class="event-panel-item-info">
-                                    <span class="event-panel-item-label">{{ event.label }}</span>
-                                    <span class="event-panel-item-time">
-                                        {{ event.date.toLocaleTimeString('en-US', {
-                                            hour: '2-digit', minute: '2-digit', hour12: false
-                                        }) }}
-                                    </span>
-                                </div>
+                        <div class="schedule-event-tooltip-title">
+                            {{ hoveredEvent.label }}
+                        </div>
+
+                        <div class="schedule-event-tooltip-meta">
+                            <div class="schedule-event-tooltip-time">
+                                {{ formatEventTime(hoveredEvent) }}
+                            </div>
+
+                            <div v-if="!hoveredEvent.confirmed" class="schedule-event-tooltip-unconfirmed">
+                                Estimated
                             </div>
                         </div>
 
-                        <div class="event-panel-unconfirmed" v-if="!selectedEvent?.confirmed">
-                            This date is not confirmed
-                        </div>
-
-                        <div class="event-panel-footer" v-if="selectedEvent && calculatedCountdown">
-                            <span class="event-panel-countdown-label">{{ calculatedCountdown.prefix }}</span>
-                            <span class="event-panel-countdown">{{ calculatedCountdown.countdown }}</span>
+                        <div v-if="hoveredCountdown" class="schedule-event-tooltip-countdown">
+                            <span class="schedule-event-tooltip-countdown-label">
+                                {{ hoveredCountdown.prefix }}
+                            </span>
+                            <span class="schedule-event-tooltip-countdown-value">
+                                {{ hoveredCountdown.value }}
+                            </span>
                         </div>
                     </div>
-                </template>
-
-                <div v-else class="event-panel-empty">
-                    <span>Select a day</span>
                 </div>
-            </div>
-        </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
 import '../styles/schedule.css';
-import { computed, onMounted, ref, watch, reactive } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { createScheduleProcessor } from './scheduleProcessor';
 import { useSettings } from './composables/useSettings.js';
-import { useFallbackImg } from './composables/useFallbackImg.js';
+
 const props = defineProps(['gameConfig']);
-const GAME_CONFIG = props.gameConfig;
-const { settings, saveSettings } = useSettings()
+const GAME_CONFIG = computed(() => props.gameConfig ?? {});
+const { settings, saveSettings } = useSettings();
+
 let computeScheduleData;
+let clockTimer;
 
 const MS_IN_MIN = 60_000;
 const MS_IN_HOUR = 3_600_000;
 const MS_IN_DAY = 86_400_000;
 
 const today = new Date();
+const now = ref(new Date());
 const currentYear = ref(today.getFullYear());
 const currentMonth = ref(today.getMonth());
-const selectedDay = ref(null);
-const selectedEvent = ref(null);
+
 const servers = ['America', 'Europe', 'Asia'];
 const selectedServer = ref(settings.value?.server ?? 'America');
 const isLoading = ref(true);
 
 const scheduleData = ref({});
-
-const gameList = computed(() => Object.keys(scheduleData.value))
 const selectedGames = ref([]);
 const gameIcons = reactive({});
 
-const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+const hoveredEvent = ref(null);
+const tooltipPosition = ref({ left: 0, top: 0, placement: 'above' });
+
+const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 const monthName = computed(() => monthNames[currentMonth.value]);
+const gameList = computed(() => Object.keys(scheduleData.value));
 
 const canGoPrev = computed(() =>
     !(currentYear.value === today.getFullYear() && currentMonth.value === today.getMonth())
@@ -180,115 +204,110 @@ const canGoPrev = computed(() =>
 const canGoNext = computed(() => {
     const maxMonth = today.getMonth() === 11 ? 0 : today.getMonth() + 1;
     const maxYear = today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear();
+
     return !(currentYear.value === maxYear && currentMonth.value === maxMonth);
 });
 
-const getNoEventsSticker = () => {
-    return new URL(`../assets/themes/${settings.value.theme}/no_events.webp`, import.meta.url).href;
-}
+const hoveredEventHasImage = computed(() => {
+    if (!hoveredEvent.value) return false;
+    return Boolean(hoveredEvent.value.img || hoveredEvent.value.fallbackImgs?.length);
+});
 
-const getLoadingSticker = () => {
-    return new URL(`../assets/themes/${settings.value.theme}/loading.webp`, import.meta.url).href;
-};
+const isPortraitTooltip = (event) =>
+    /trailer|release/i.test(event?.label ?? '');
 
-const { eventSrc, onError } = useFallbackImg(
-    computed(() => selectedEvent.value?.img),
-    computed(() => selectedEvent.value?.fallbackImgs)
-)
+const hoveredEventIsPortrait = computed(() =>
+    isPortraitTooltip(hoveredEvent.value)
+);
+
+const tooltipStyle = computed(() => ({
+    '--gc': hoveredEvent.value?.color ?? 'var(--accent)',
+    left: `${tooltipPosition.value.left}px`,
+    top: `${tooltipPosition.value.top}px`,
+    transform: tooltipPosition.value.placement === 'above'
+        ? 'translate(-50%, calc(-100% - 10px))'
+        : 'translate(-50%, 10px)'
+}));
+
+const hoveredCountdown = computed(() => {
+    if (!hoveredEvent.value?.date) return null;
+
+    const diff = hoveredEvent.value.date.getTime() - now.value.getTime();
+
+    if (diff > 0) {
+        return {
+            prefix: 'starts in',
+            value: countdownFormat(diff)
+        };
+    }
+
+    return {
+        prefix: 'started',
+        value: `${countdownFormat(Math.abs(diff))} ago`
+    };
+});
+
+const getLoadingSticker = () =>
+    new URL(`../assets/themes/${settings.value.theme}/loading.webp`, import.meta.url).href;
+
+const getGameSlug = (name) =>
+    name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 
 const loadGameIcons = async () => {
     for (const game of gameList.value) {
+        if (gameIcons[game]) continue;
+
         const slug = getGameSlug(game);
         gameIcons[game] = await window.api.cacheImage(`games/${slug}_icon.webp`);
     }
 };
 
-const getBackgroundImageWithFallbacks = (rel) => {
-    const allImages = [rel.img, ...(rel.fallbackImgs || [])].filter(Boolean);
-
-    return allImages.map(imgSrc => `url('${imgSrc}')`).join(', ');
+const getBackgroundImageWithFallbacks = (event) => {
+    const allImages = [event?.img, ...(event?.fallbackImgs || [])].filter(Boolean);
+    return allImages.map((imgSrc) => `url('${imgSrc}')`).join(', ');
 };
 
-watch(() => props.gameConfig, (config) => {
-    if (config) {
-        ({ computeScheduleData } = createScheduleProcessor(config));
-    }
-}, { immediate: true });
+const isToday = (date) => {
+    const current = now.value;
 
-watch(selectedServer, async (val) => {
-    isLoading.value = true;
-
-    settings.value.server = val;
-    saveSettings(true);
-
-    scheduleData.value = await computeScheduleData(val);
-    await loadGameIcons();
-
-    if (selectedDay.value) {
-        const key = selectedDay.value.date.toDateString();
-        const freshEvents = eventsByDay.value[key] ?? [];
-        
-        selectedDay.value = { date: selectedDay.value.date, events: freshEvents };
-        
-        const prevLabel = selectedEvent.value?.label;
-        selectedEvent.value = freshEvents.find(e => e.label === prevLabel) ?? freshEvents[0] ?? null;
-    }
-
-    isLoading.value = false;
-}, { immediate: true });
-
-const nextMonth = () => {
-    if (!canGoNext.value) return;
-    if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++; }
-    else currentMonth.value++;
+    return date.getFullYear() === current.getFullYear()
+        && date.getMonth() === current.getMonth()
+        && date.getDate() === current.getDate();
 };
-
-const prevMonth = () => {
-    if (!canGoPrev.value) return;
-    if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value--; }
-    else currentMonth.value--;
-};
-
-const isToday = (date) =>
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate();
-
-const getGameSlug = (name) =>
-    name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 
 const toggleSelectedGames = (game) => {
+    hideEventTooltip();
+
     const index = selectedGames.value.indexOf(game);
     if (index > -1) selectedGames.value.splice(index, 1);
     else selectedGames.value.push(game);
 };
 
-const selectDay = (day) => {
-    if (selectedDay.value?.date.toDateString() === day.date.toDateString()) {
-        selectedDay.value = null;
-        selectedEvent.value = null;
-        return;
-    }
-    selectedDay.value = day;
-    selectedEvent.value = day.events[0] ?? null;
-};
-
 const filteredScheduleData = computed(() => {
     if (selectedGames.value.length === 0) return scheduleData.value;
+
     return Object.fromEntries(
-        Object.entries(scheduleData.value).filter(([game]) => selectedGames.value.includes(game))
+        Object.entries(scheduleData.value)
+            .filter(([game]) => selectedGames.value.includes(game))
     );
 });
 
 const eventsByDay = computed(() => {
     const map = {};
+
     for (const [game, events] of Object.entries(filteredScheduleData.value)) {
-        const color = GAME_CONFIG[game]?.color;
+        const color = GAME_CONFIG.value[game]?.color;
+
         for (const eventData of Object.values(events)) {
             const key = eventData.date.toDateString();
-            (map[key] ??= []).push({ ...eventData, color });
+            (map[key] ??= []).push({ ...eventData, game, color });
         }
     }
+
+    for (const events of Object.values(map)) {
+        events.sort((a, b) => a.date - b.date);
+    }
+
     return map;
 });
 
@@ -298,20 +317,67 @@ const weeks = computed(() => {
     const days = [];
 
     for (let i = 0; i < start.getDay(); i++) days.push(null);
+
     for (let d = 1; d <= end.getDate(); d++) {
         const date = new Date(currentYear.value, currentMonth.value, d);
         const events = eventsByDay.value[date.toDateString()] ?? [];
-
-        const releases = events.filter(e => e.label.includes("Release") && e.img);
-
+        const releases = events.filter(
+            (event) =>
+                /release/i.test(event.label)
+                && (event.img || event.fallbackImgs?.length)
+        );
         days.push({ date, events, releases });
     }
 
     const result = [];
     for (let i = 0; i < days.length; i += 7) result.push(days.slice(i, i + 7));
-    while (result[result.length - 1].length < 7) result[result.length - 1].push(null);
+
+    while (result[result.length - 1].length < 7) {
+        result[result.length - 1].push(null);
+    }
+
     return result;
 });
+
+const nextMonth = () => {
+    if (!canGoNext.value) return;
+
+    hideEventTooltip();
+
+    if (currentMonth.value === 11) {
+        currentMonth.value = 0;
+        currentYear.value++;
+    } else {
+        currentMonth.value++;
+    }
+};
+
+const prevMonth = () => {
+    if (!canGoPrev.value) return;
+
+    hideEventTooltip();
+
+    if (currentMonth.value === 0) {
+        currentMonth.value = 11;
+        currentYear.value--;
+    } else {
+        currentMonth.value--;
+    }
+};
+
+const formatEventTime = (event) =>
+    event.date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+
+const formatEventDate = (event) =>
+    event.date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+    });
 
 const countdownFormat = (ms) => {
     const d = Math.floor(ms / MS_IN_DAY);
@@ -321,16 +387,80 @@ const countdownFormat = (ms) => {
     return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`;
 };
 
-const calculatedCountdown = computed(() => {
-    if (!selectedEvent.value) return null
-    const diff = selectedEvent.value.date - new Date()
-    if (diff <= 0) return null
-    return { prefix: 'starts in', countdown: countdownFormat(diff) }
-})
+const showEventTooltip = (event, domEvent) => {
+    const target = domEvent.currentTarget;
+    const rect = target?.getBoundingClientRect?.();
+
+    if (!rect) return;
+
+    const portrait = isPortraitTooltip(event);
+    const tooltipWidth = portrait ? 220 : 290;
+    const tooltipHalfWidth = tooltipWidth / 2;
+    const viewportPadding = 12;
+    const centerX = rect.left + rect.width / 2;
+    const clampedX = Math.min(
+        Math.max(centerX, tooltipHalfWidth + viewportPadding),
+        window.innerWidth - tooltipHalfWidth - viewportPadding
+    );
+
+    const hasImage = Boolean(event.img || event.fallbackImgs?.length);
+
+    const estimatedHeight = hasImage
+        ? portrait
+            ? 430
+            : 245
+        : 170;
+
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    const placeAbove =
+        spaceAbove >= estimatedHeight ||
+        spaceAbove > spaceBelow;
+
+    tooltipPosition.value = {
+        left: clampedX,
+        top: placeAbove ? rect.top : rect.bottom,
+        placement: placeAbove ? 'above' : 'below'
+    };
+
+    hoveredEvent.value = event;
+};
+
+const hideEventTooltip = () => {
+    hoveredEvent.value = null;
+};
+
+watch(() => props.gameConfig, (config) => {
+    if (config) {
+        ({ computeScheduleData } = createScheduleProcessor(config));
+    }
+}, { immediate: true });
+
+watch(selectedServer, async (server) => {
+    if (!computeScheduleData) return;
+
+    hideEventTooltip();
+    isLoading.value = true;
+
+    settings.value.server = server;
+    saveSettings(true);
+
+    try {
+        scheduleData.value = await computeScheduleData(server);
+        await loadGameIcons();
+    } finally {
+        isLoading.value = false;
+    }
+}, { immediate: true });
 
 onMounted(() => {
-    const todayEvents = eventsByDay.value[today.toDateString()] ?? [];
-    selectedDay.value = { date: today, events: todayEvents };
-    selectedEvent.value = todayEvents[0] ?? null;
+    clockTimer = window.setInterval(() => {
+        now.value = new Date();
+    }, 30_000);
+});
+
+onBeforeUnmount(() => {
+    if (clockTimer) window.clearInterval(clockTimer);
 });
 </script>

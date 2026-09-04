@@ -72,7 +72,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
 
     const currentSecondPhase = new Date(currentOpen);
     currentSecondPhase.setUTCDate(currentSecondPhase.getUTCDate() + gameData.current.version_duration / 2);
-    if (gameData.second_phase_offset) currentSecondPhase.setUTCDate(currentSecondPhase.getUTCDate() + gameData.second_phase_offset);
+    currentSecondPhase.setUTCDate(currentSecondPhase.getUTCDate() + gameData.current.second_phase_offset);
     currentSecondPhase.setUTCHours(secondPhaseUTCHour, 0, 0, 0);
 
     const nextOpen = new Date(currentOpen);
@@ -80,7 +80,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
 
     const nextSecondPhase = new Date(nextOpen);
     nextSecondPhase.setUTCDate(nextSecondPhase.getUTCDate() + gameData.next.version_duration / 2);
-    if (gameData.second_phase_offset) nextSecondPhase.setUTCDate(nextSecondPhase.getUTCDate() + gameData.second_phase_offset);
+    nextSecondPhase.setUTCDate(nextSecondPhase.getUTCDate() + gameData.next.second_phase_offset);
     nextSecondPhase.setUTCHours(secondPhaseUTCHour, 0, 0, 0);
 
     return {
@@ -111,6 +111,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
       characterTrailers[trailerKey] = {
         date: trailerDate,
         label: `${formatCharacterLabel(characters)} Trailer`,
+        title: `${formatCharacterLabel(characters)} 🎞️`,
         img: await characterImg(characters[0]),
         fallbackImgs: [await gameImg(game, gameData.current.version), await defaultImg(game)],
         confirmed: trailerDate.getTime() <= Date.now()
@@ -165,6 +166,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
           releaseEvents[key] = {
             date: phaseDate,
             label: `${character} Release`,
+            title: `${character}`,
             img: await characterImg(character),
             fallbackImgs: [await gameImg(game, patchData.version), await defaultImg(game)],
             confirmed
@@ -175,8 +177,11 @@ export function createScheduleProcessor(GAME_CONFIG) {
         releaseEvents[baseKey] = {
           date: phaseDate,
           label: isPhase1
-            ? `${gameData.abbr} ${version} Release - ${character}`
-            : `${character} Release`,
+            ? `${gameData.abbr} ${version} - ${character} Release`
+            : `${gameData.abbr} ${version} 2nd Phase - ${character} Release`,
+          title: isPhase1
+            ? `${gameData.abbr} ${version}`
+            : `${gameData.abbr} ${version} 2nd Phase`,
           img: await characterImg(character),
           fallbackImgs: [await gameImg(game, patchData.version), await defaultImg(game)],
           confirmed
@@ -184,7 +189,8 @@ export function createScheduleProcessor(GAME_CONFIG) {
       } else {
         releaseEvents[baseKey] = {
           date: phaseDate,
-          label: `${gameData.abbr} ${version} ${isPhase1 ? "Release" : "Second Phase"}`,
+          label: `${gameData.abbr} ${version}${isPhase1 ? "" : " Second Phase"}`,
+          title: `${gameData.abbr} ${version}${isPhase1 ? "" : " 2nd Phase"}`,
           img: await gameImg(game, patchData.version),
           fallbackImgs: [await defaultImg(game)],
           confirmed
@@ -209,6 +215,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
       nextPatchTrailer: {
         date: startDate,
         label: `${gameData.abbr} ${gameData.next.version} Trailer`,
+        title: `${gameData.abbr} ${gameData.next.version} 🎞️`,
         img: await gameImg(game, gameData.current.version),
         fallbackImgs: [await defaultImg(game)],
         confirmed: true
@@ -251,6 +258,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
         dripMarketingDates[`${key}DripMarketing_day${dayOffset + 1}`] = {
           date: dripDate,
           label: `${gameData.abbr} ${versionNumber} 5★ Drip Marketing`,
+          title: `${gameData.abbr} ${versionNumber} Drip`,
           img: await gameImg(game, gameData.current.version),
           fallbackImgs: [await defaultImg(game)],
           confirmed: true
@@ -291,6 +299,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
           livestream: {
             date: livestreamDate,
             label: `${gameData.abbr} ${gameData.next.version} Livestream`,
+            title: `${gameData.abbr} ${gameData.next.version} 🎥`,
             img: await livestreamImg(game, gameData.next.version),
             fallbackImgs: [await gameImg(game, gameData.current.version), await defaultImg(game)],
             confirmed: (livestreamDate.getTime() - Date.now()) <= (1000 * 60 * 60 * 24 * 3)
@@ -300,6 +309,7 @@ export function createScheduleProcessor(GAME_CONFIG) {
           nextLivestream: {
             date: nextLivestreamDate,
             label: `${gameData.abbr} ${gameData.next.future_livestream_version} Livestream`,
+            title: `${gameData.abbr} ${gameData.next.future_livestream_version} 🎥`,
             img: await livestreamImg(game, gameData.next.future_livestream_version),
             fallbackImgs: [await gameImg(game, gameData.next.version), await gameImg(game, gameData.current.version), await defaultImg(game)],
             confirmed: false

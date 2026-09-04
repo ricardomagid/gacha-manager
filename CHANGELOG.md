@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.6] - 2026-09-04
+### Changed
+- Calendar UI improved
+
 ## [0.8.5] - 2026-09-04
 ### Fixed
 - Preserve version numbers in schedule

@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -101,9 +102,19 @@ html, body {
     color: var(--muted2);
 }
 
+.view-btn span {
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
 .app-bar-right {
     display: flex;
     gap: 4px;
+}
+
+.app-tab-labels {
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
 }
 
 .view-toggle {
