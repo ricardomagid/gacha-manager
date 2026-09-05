@@ -1,8 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
-    getGameConfig: () => ipcRenderer.invoke('get-game-config'),
-    cacheImage: (filename) => ipcRenderer.invoke('cache-image', filename),
+    getGameConfig: () => ipcRenderer.invoke('getGameConfig'),
+    cacheImage: (filename) => ipcRenderer.invoke('cacheImage', filename),
+    deleteCacheAssets: () => ipcRenderer.invoke('deleteCacheAssets'),
     getGamesWithoutAccounts: () => ipcRenderer.invoke('getGamesWithoutAccounts'),
     insertAccounts: (gameList) => ipcRenderer.invoke('insertAccounts', gameList),
     updateAccount: (accountData) => ipcRenderer.invoke('updateAccount', accountData),

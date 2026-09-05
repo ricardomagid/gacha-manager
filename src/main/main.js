@@ -62,8 +62,11 @@ function startMonitoring() {
   if (monitorInterval) return;
 
   function checkProcesses() {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+  
     exec('tasklist', (err, stdout) => {
       if (err) return
+      if (!mainWindow || mainWindow.isDestroyed()) return;
 
       for (const [game, config] of Object.entries(GAME_CONFIG)) {
         if (stdout.includes(config.process)) {
@@ -122,6 +125,46 @@ function getGroupedAccounts() {
   return grouped;
 }
 
+async function deleteCacheFiles(month = 4) {
+  const cutoffDate = new Date();
+  cutoffDate.setMonth(cutoffDate.getMonth() - month);
+
+  async function cleanDirectory(directory) {
+    let entries;
+
+    try {
+      entries = await fs.readdir(directory, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    for (const entry of entries) {
+      const filePath = path.join(directory, entry.name);
+
+      try {
+        if (entry.isDirectory()) {
+          await cleanDirectory(filePath);
+          continue;
+        }
+
+        if (!entry.name.toLowerCase().endsWith('.webp')) {
+          continue;
+        }
+
+        const stats = await fs.stat(filePath);
+
+        if (stats.mtime < cutoffDate) {
+          await fs.unlink(filePath);
+        }
+      } catch {
+        // Skip files that were deleted or became inaccessible during the scan
+      }
+    }
+  }
+
+  await cleanDirectory(ASSETS_CACHE);
+}
+
 // --- Window Management ---
 
 const createMainWindow = () => {
@@ -144,10 +187,15 @@ const createMainWindow = () => {
 
 // --- IPC Handlers ---
 
-ipcMain.handle('get-game-config', () => GAME_CONFIG)
+ipcMain.handle('getGameConfig', () => GAME_CONFIG)
 
-ipcMain.handle('cache-image', async (_, filename) => {
-  const localPath = path.join(ASSETS_CACHE, filename);
+ipcMain.handle('cacheImage', async (_, filename) => {
+  const resolved = path.resolve(ASSETS_CACHE, filename);
+  if (!resolved.startsWith(path.resolve(ASSETS_CACHE) + path.sep)) {
+    throw new Error('Invalid filename');
+  }
+
+  const localPath = resolved;
 
   try {
     await fs.access(localPath);
@@ -246,9 +294,20 @@ ipcMain.handle('sendNotification', (event, { title, body }) => {
   }
 })
 
+ipcMain.handle('deleteCacheAssets', async () => {
+  try {
+    deleteCacheFiles(0)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+})
+
 // --- App Entry Point ---
 
 app.whenReady().then(async () => {
+  await deleteCacheFiles();
+
   GAME_CONFIG = await loadGameConfig();
   if (app.isPackaged) {
     autoUpdater.setFeedURL({
@@ -287,6 +346,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  stopMonitoring();
   if (process.platform !== 'darwin') {
     app.quit();
   }

@@ -28,6 +28,21 @@
                     </div>
 
                     <div class="settings-section">
+                        <p class="settings-section-label">Storage</p>
+
+                        <div class="settings-row">
+                            <div class="settings-row-label">
+                                <span>Cached Assets</span>
+                                <small>Remove downloaded images stored locally</small>
+                            </div>
+
+                            <button type="button" class="delete-cache-btn" @click="deleteCacheAssets()">
+                                Delete Cache
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
                         <p class="settings-section-label">Account Settings</p>
                         <p class="settings-section-desc">Configure automatic dailies and notifications per account</p>
                         <div class="game-groups">
@@ -88,6 +103,19 @@ const props = defineProps({
 const saveChanges = async () => {
     await saveSettings();
     showSettings.value = !showSettings.value
+}
+
+const deleteCacheAssets = async () => {
+    try {
+        const response = await window.api.deleteCacheAssets()
+        if (response.success) {
+            createNotification('success', 'Cache deleted!', 1000)
+        } else {
+            createNotification('error', `Error: ${response.error || 'Unknown error'}`, 2000)
+        }
+    } catch (err) {
+        createNotification('error', `Critical Error: ${err.message}`, 2000)
+    }
 }
 </script>
 
@@ -384,7 +412,9 @@ const saveChanges = async () => {
     user-select: none;
 }
 
-.chip-toggle input { display: none; }
+.chip-toggle input {
+    display: none;
+}
 
 .chip-toggle:hover {
     border-color: var(--border-hover);
@@ -440,6 +470,26 @@ const saveChanges = async () => {
 .apply-btn:hover {
     background: var(--accent);
     color: #000;
+}
+
+.delete-cache-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-hover);
+    background: var(--task-bg);
+    color: var(--muted2);
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.delete-cache-btn:hover {
+    border-color: var(--urgent);
+    background: color-mix(in srgb, var(--urgent) 12%, transparent);
+    color: var(--urgent);
 }
 
 .confirm-enter-active,

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.8] - 2026-09-05
+### Added
+- Automatic deletion of old cached assets
+- Button to delete all cached assets
+
 ## [0.8.7] - 2026-09-04
 ### Changed
 - Calendar UI improved
